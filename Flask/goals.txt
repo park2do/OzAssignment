@@ -47,12 +47,11 @@ Jinja(Template Engine)
     {% ... %}
         제어 구조 
         반복문 
-TMI
-__name__이란
-    자신의 
+
 
 =========
 oz코딩스쿨
 한 권으로 정리하는 파이썬 백엔드
 플라스크 공식문서 https://flask-docs-kr.readthedocs.io/ko/latest/
+https://kkjjww1102.tistory.com/5
 =========
