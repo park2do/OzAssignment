@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields # 스키마 생성
 
 class BookSchema(Schema):
     id = fields.Int(dump_only=True)
