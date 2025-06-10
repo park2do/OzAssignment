@@ -878,11 +878,803 @@ flask db upgrade
 
 4. 로그아웃: 사용자 로그아웃 시, 서버는 해당 사용자의 세션을 제거하고 세션ID를 무효화.
 
+## Flask 기본 세션 모듈에서 제공하는 함수
+
+**`session`** 객체는 사용자의 브라우저에 저장된 쿠키와 연결되어 있으며, 사전(dictionary) 형태로 작동하여 세션 데이터를 저장하고 접근합니다.
+
+**(1) `session`에 데이터 저장하기**
+
+**데이터 추가**: **`session`** 객체에 새로운 키와 값을 추가할 수 있습니다.
+
+```python
+session['username'] = 'john'
+```
+
+**(2)`session`에서 데이터 가져오기**
+
+**데이터 읽기**: **`session`** 객체에서 키를 사용하여 데이터를 읽을 수 있습니다.
+
+```python
+username = session['username']
+```
+
+**`get` 메소드 사용**: 키가 존재하지 않을 경우 **`None`**을 반환하도록 **`get`** 메소드를 사용할 수 있습니다.
+
+```python
+username = session.get('username')
+```
+
+**(3) `session`에서 데이터 제거하기**
+
+**데이터 삭제**: **`pop`** 메소드를 사용하여 특정 키와 그에 대응하는 값을 세션에서 제거할 수 있습니다.
+
+```python
+session.pop('username', None)
+```
+
+**세션 클리어**: **`clear`** 메소드를 사용하여 세션의 모든 데이터를 제거할 수 있습니다.
+
+```python
+session.clear()
+```
+
+- 특정 사용자와 관련된 모든 세션 데이터를 서버 측에서 삭제하는 데 사용
+  주로 사용자가 로그아웃할 때, 사용자와 관련된 모든 세션 데이터를 삭제함.
+
+**(4) 세션 유지 기간 설정**
+
+**`permanent`** 속성을 **`True`**로 설정하여 세션의 유지 기간을 **`PERMANENT_SESSION_LIFETIME`** 설정값에 따라 조정 가능
+
+**app.py**
+
+```python
+from datetime import timedelta
+
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # 예: 7일
+```
+
+**routes/user.py**
+
+```python
+@app.route('/login', methods=['POST'])
+def login():
+    session['username'] = 'your_username'
+    session.permanent = True  # 세션 유지 기간을 활성화
+    return redirect(url_for('secret'))
+```
+
 ## 2. HTTP 기본 인증
+
+### Flask HTTP-Auth
+
+라이브러리 설치
+
+```
+pip insatll Flask-HTTPAuth
+```
+
+- `@**auth.verify_password**` (사용자 인증)
+  사용자 이름과 비밀번호가 유효한지 확인하는 함수를 정의합니다. 여기서는 간단한 사전 **`users`**를 사용하여 사용자 이름과 비밀번호를 확인합니다. 실전 환경에서는 데이터베이스 또는 다른 안전한 저장소를 사용해야합니다.
+- **`@auth.login_required`** (라우트 보호)
+  인증된 사용자만 해당 라우트로 접근할 수 있도록하는 목적. 사용자 인증을 요구.
+- **`@auth.error_handler`** (오류 핸들링)
+  인증에 실패했을 때의 동작을 정의
+  위 코드에서는 403 상태 코드와 함께 오류 메시지를 반환
 
 ## 3. Flask-Login
 
+라이브러리 설치
+
+```
+pip install flask-login
+```
+
+### 필요한 라이브러리 불러오기
+
+routes.py
+
+```
+from flask import render_template, request, url_for, redirect, flash
+from models import User, users
+from flask_login import login_user, logout_user, login_required
+```
+
+app.py
+
+```
+from flask import Flask
+from flask_login import LoginManager
+# LoginManager 클래스를 가져오는 코드 (로그인 상태 관리, 세션 저장, 로그인 처리 담당)
+from models import User
+from routes import configure_route
+```
+
+models.py
+
+```
+from flask_login import UserMixin # 기본 사용자 기능을 자동으로 구현해주는 믹스인 클래스
+
+users = {'admin' : {'password': 'qwe123'}} # 유저 정보 DB
+
+class User(UserMixin):  #  User 클래스 정의
+    def __init__(self, username):
+        self.id = username
+
+    @staticmethod # 객체 없이 호출 가능
+    def get(user_id): # 세션에서 가져온 user_id로 사용자 객체를 복원하는 용도
+        if user_id in users:
+            return User(user_id)
+
+```
+
+### 각 파일 코드 작성
+
+#### 파일 디렉토리
+
+```
+├─app.py
+├─models.py
+├─routes.py
+└─templates.py
+    ├─index.html
+    └─login.html
+```
+
+index.html
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <a href="/login">Login</a>
+    <a href="/logout">Logout</a>
+    <a href="/protected">Protected</a>
+</body>
+</html>
+```
+
+login.html
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method="post">
+        Username: <input type="text" name="username" /><br/>
+        Password: <input type="password" name="password" /><br/>
+        <input type="submit" value="login" />
+    </form>
+</body>
+</html>
+```
+
+routes.py
+
+```
+from flask import render_template, request, url_for, redirect, flash
+from models import User, users
+from flask_login import login_user, logout_user, login_required #
+
+
+def configure_route(app):
+    @app.route('/')
+    def index():
+        return render_template('index.html')
+
+    @app.route('/login', methods=['GET','POST'])
+    def login():
+        if request.method == 'POST': # FE 단에서 BE로 폼 전송
+            username = request.form['username']
+            password = request.form['password']
+
+            user = User.get(username) # 유저 네임 받기
+
+            if user and users[username]['password'] == password:
+                login_user(user) # 'login_user' -> flask login Library
+
+                return redirect(url_for('index'))
+            else:
+                flash('Invalid username or password')
+
+        return render_template('/protected')
+
+    @app.route('/logout') # 로그아웃 설정
+    def logout():
+        logout_user()
+        return redirect('/') # 로그아웃 시, 홈페이지로 리디렉션
+
+    @app.route('/protected') # 로그인 성공 페이지
+    @login_required
+    def protected():
+        return "<h1>Protected Area</h1> <a href='/logout'>Logout</a>"
+
+```
+
+app.py
+
+```
+from flask import Flask
+from flask_login import LoginManager # LoginManager 클래스를 가져오는 코드 (로그인 상태 관리, 세션 저장, 로그인 처리 담당)
+from models import User
+from routes import configure_route
+
+app = Flask(__name__)
+app.secret_key = 'flask-secret-key' # 암호화 설정
+
+login_manager = LoginManager() # 함수 불러오기
+login_manager.init_app(app) # init_app을 통해 초기화
+login_manager.login_view = 'login'  # login view를 결정한다. 그게 뭔데? 로그인을 했을 때,
+                                    # 자동으로 이동할 로그인 페이지의 라우트 이름을 지정
+
+@login_manager.user_loader
+def load_user(user_id): # user_id -> 세션에서 가져옴
+    return User.get(user_id)
+
+configure_route(app)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+models.py
+
+```
+from flask_login import UserMixin # 기본 사용자 기능을 자동으로 구현해주는 믹스인 클래스
+
+users = {'admin' : {'password': 'qwe123'}} # 유저 정보 DB
+
+class User(UserMixin):  #  User 클래스 정의
+    def __init__(self, username):
+        self.id = username
+
+    @staticmethod # 객체 없이 호출 가능
+    def get(user_id): # 세션에서 가져온 user_id로 사용자 객체를 복원하는 용도
+        if user_id in users:
+            return User(user_id)
+
+```
+
 ## 4. JWT-Extended
+
+- JSON Web Token(JWT)을 쉽게 다룰 수 있도록 해주는 확장 라이브러리
+  - JWT: 사용자 인증 및 권한 부여에서 널리 사용되는 방식으로 서버와 클라이언트 간의 안전한 정보전달
+
+설치
+
+```
+pip install Flask-JWT-Extended
+```
+
+## **요약**
+
+Flask JWT-Extended를 사용하여 간단한 JWT 기반 인증 시스템을 구축
+
+1. **`app.py`**에서 Flask 애플리케이션을 설정하고 JWT 인증 라우트를 정의합니다.
+2. **`models/user.py`**에서 사용자 모델을 정의합니다.
+3. **`jwt_utils.py`**에서 JWT 설정과 인증 관련 유틸리티 함수를 정의합니다.
+
+| Method   | Endpoint          | Description                                           |
+| -------- | ----------------- | ----------------------------------------------------- |
+| `POST`   | `/register`       | Create user accounts given an `email` and `password`. |
+| `POST`   | `/login`          | Get a JWT given an `email` and `password`.            |
+| 🔒`POST` | `/logout`         | Revoke a JWT.                                         |
+| 🔒`POST` | `/refresh`        | Get a fresh JWT given a refresh JWT.                  |
+| `GET`    | `/user/{user_id}` | (dev-only) Get info about a user given their ID.      |
+| `DELETE` | `/user/{user_id}` | (dev-only) Delete a user given their ID.              |
+
+## JWTManager에서 사용할 수 있는 주요 데코레이터
+
+(1) **`@jwt_required()`**:
+
+```python
+from flask_jwt_extended import jwt_required
+
+@jwt_required()
+def protected_route():
+    # 이 라우트는 JWT가 필요합니다.
+    # JWT가 유효하면 실행됩니다.
+```
+
+이 데코레이터는 해당 엔드포인트에 접근하려면 JWT가 필요하다는 것을 나타냅니다. 클라이언트는 유효한 JWT를 제공해야만 해당 라우트에 접근할 수 있습니다.
+
+(2) **`@jwt_optional()`**:
+
+```python
+from flask_jwt_extended import jwt_optional
+
+@jwt_optional()
+def optional_route():
+    # 이 라우트는 JWT가 선택적입니다.
+    # JWT가 제공되면 유효성을 확인하고, 제공되지 않으면 계속 진행합니다.
+```
+
+이 데코레이터는 해당 엔드포인트에 클라이언트가 JWT를 제공할 수 있지만, 필수적이지 않다는 것을 나타냅니다. 클라이언트가 JWT를 제공하면 이를 확인하고 유효성을 검사하며, 제공되지 않으면 계속 진행합니다.
+
+(3)**`@fresh_jwt_required()`**:
+
+```python
+from flask_jwt_extended import fresh_jwt_required
+
+@fresh_jwt_required()
+def fresh_route():
+    # 이 라우트는 fresh한 JWT가 필요합니다.
+    # JWT가 fresh하지 않으면 해당 라우트에 접근할 수 없습니다.
+```
+
+이 데코레이터는 해당 엔드포인트에 접근하려면 fresh한 JWT가 필요하다는 것을 나타냅니다. JWT가 fresh하지 않으면 해당 라우트에 접근할 수 없습니다. 또한 **`@jwt_required(optional=True)`**, **`@jwt_required(fresh=True, optional=True)`** 등의 옵션을 사용하여 더 세부적인 제어가 가능합니다.
+
+(4) **`@jwt_refresh_token_required()`**:
+
+```python
+from flask_jwt_extended import jwt_refresh_token_required
+
+@jwt_refresh_token_required()
+def refresh_route():
+    # 이 라우트는 refresh token이 필요합니다.
+    # refresh token이 유효하면 해당 라우트에 접근할 수 있습니다.
+```
+
+이 데코레이터는 해당 엔드포인트에 접근하려면 refresh token이 필요하다는 것을 나타냅니다. refresh token이 유효하면 해당 라우트에 접근할 수 있습니다.
+
+### BLOCKLIST
+
+- 로그인을 관리하는 함수 그니까, 이 토큰을 여걸로 관리해서 있다 없다를 알려줌
+
+### 코드
+
+디렉토리
+
+```
+├─app.py
+├─blocklsist.py
+├─jwt_utils.py
+├─models
+│   └─user.py
+├─routes
+│   └─user.py
+└─templates
+    ├─index.html
+    ├─login.html
+    └─protect.html
+```
+
+app.py
+
+```
+from flask import Flask, render_template
+from routes.user import user_bp
+from jwt_utils import configure_jwt  # JWT 설정 함수를 임포트합니다.
+
+app = Flask(__name__)
+configure_jwt(app)  # JWT 관련 추가 설정을 적용합니다.
+
+app.register_blueprint(user_bp, url_prefix='/user')
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+blocklsist.py
+
+```
+# 블록리스트 관리 파일
+
+BLOCKLIST = set()
+
+def add_to_blocklist(jti):
+    BLOCKLIST.add(jti)
+
+def remove_from_blocklist(jti):
+    BLOCKLIST.discard(jti)
+```
+
+jwt_utils.py
+
+```
+from flask_jwt_extended import JWTManager
+from blocklist import BLOCKLIST
+from flask import jsonify
+
+jwt = JWTManager()
+
+def configure_jwt(app):
+    app.config["JWT_SECRET_KEY"] = "flask-secret-key"
+
+    # 토큰 만료시간 설정
+    freshness_in_minutes = 1
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = freshness_in_minutes * 60 # 1 hour
+    jwt.init_app(app)
+
+    # 추가적인 정보를 토큰에 넣기
+    @jwt.additional_claims_loader #데코레이터
+    def add_claim_to_jwt(identity):
+        if identity == 1:
+            return {"is_admin": True}
+        return {"is_admin": False}
+
+    # 토큰이 블록리스트 내에 있는지 확인
+    @jwt.token_in_blocklist_loader
+    def check_if_token_in_blocklist(jwt_header, jwt_payload):
+        return jwt_payload["jti"] in BLOCKLIST
+
+    # 만료된 토큰이 사용되었을 때 실행되는 함수
+    @jwt.expired_token_loader
+    def expirede_token_callback(jwt_header, jwt_payload):
+        return jsonify({"msg": "Token exprired", "error": "token_expired"}), 401
+
+    # 유효하지 않은 토큰이 사용되었을 때
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        return (
+            jsonify (
+                {"message": "invalid token"},
+            ), 401
+        )
+
+    # 해당 토큰으로 접근 권한이 없는 경우
+    @jwt.unauthorized_loader
+    def missing_token_callback(error):
+        return (
+            jsonify(
+                {
+                    'description': "Access token required",
+                    "error": "access_token_required"
+                }
+            ), 401
+        )
+
+    # fresh한 토큰이 필요한데 fresh하지 않은 토큰이 사용되었을 때 실행되는 함수를 정의
+    # fresh 토큰이 필요하다는 메세지 전달 및 토큰 만료시간 조절
+    @jwt.needs_fresh_token_loader
+    def token_not_fresh_callback(jwt_header, jwt_payload):
+        return (
+            jsonify(
+                {"description": "Token is not fresh.",
+                "error": "fresh token required"
+                }
+            ),
+            401
+        )
+
+    # 토큰이 폐기되었을 때 실행되는 함수
+    @jwt.revoked_token_loader
+    def revoked_token_calllback(jwt_header, jwt_payload):
+        return (
+            jsonify(
+                {"description": "Token has been revoked", "error": "token_revoked"}
+            ),
+            401
+        )
+```
+
+models/user.py
+
+```
+class User:
+    def __init__(self, id, username, password):
+        self.id = id
+        self.username = username
+        self.username = password
+```
+
+routes/user.py
+
+```
+from flask import Blueprint, jsonify, request, render_template
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+from models.user import User
+
+user_bp = Blueprint('user', __name__)
+
+# 임시 사용자 데이터
+users = {
+    'user1': User('1', 'user1', 'pw123'),
+    'user2': User('2', 'user2', 'pw123')
+}
+
+@user_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.json.get('username', None)
+        password = request.json.get('password', None)
+
+        user = users.get(username)
+        if user and user.password == password:
+            access_token = create_access_token(identity=username)
+            refresh_token = create_refresh_token(identity=username)
+            return jsonify(access_token=access_token, refresh_token=refresh_token)
+        else:
+            return jsonify({"msg": "Bad username or password"}), 401
+    else:
+        return render_template('login.html')
+
+
+@user_bp.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
+
+@user_bp.route('/protected_page')
+def protected_page():
+    return render_template('protected.html')
+
+from flask_jwt_extended import get_jwt
+from blocklist import add_to_blocklist  # 블랙리스트 관리 모듈 임포트
+@user_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    add_to_blocklist(jti)  # jti를 블랙리스트에 추가
+    return jsonify({"msg": "Successfully logged out"}), 200
+```
+
+templates/index.html
+
+```
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Home Page</title>
+  </head>
+  <body>
+    <h1>Welcome to the Home Page</h1>
+    <a href="/user/login">Login</a> | <a href="/user/logout">Logout</a>
+    <a href="/user/protected">Protected Page</a>
+  </body>
+</html>
+```
+
+templates/login.html
+
+```
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Login</title>
+    <script>
+      function handleLogin(event) {
+        event.preventDefault(); // 폼의 기본 제출 동작을 방지
+
+        // 폼 데이터를 JSON으로 변환
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+        var data = { username: username, password: password };
+
+        // fetch를 사용하여 서버에 POST 요청 보내기
+        fetch("/user/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Success:", data);
+            // 로그인 성공 후 'protected' 페이지로 리다이렉트
+            localStorage.setItem("access_token", data.access_token);
+            localStorage.setItem("refresh_token", data.refresh_token);
+            window.location.href = "/user/protected_page";
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Login</h1>
+    <form onsubmit="handleLogin(event)">
+      Username: <input type="text" id="username" name="username" /><br />
+      Password: <input type="password" id="password" name="password" /><br />
+      <input type="submit" value="Login" />
+    </form>
+  </body>
+</html>
+```
+
+templates/protect.html
+
+```
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Protected Page</title>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const token = localStorage.getItem("access_token");
+        console.log("token", token);
+        if (token) {
+          fetch("/user/protected", {
+            headers: {
+              Authorization: `Bearer ${token}`, // 보호되는 페이지에 써야함 Bearer
+            },
+          })
+            .then((response) => {
+              if (response.ok) {
+                return response.json();
+              } else {
+                throw new Error("Access Denied");
+              }
+            })
+            .then((data) => {
+              document.getElementById("content").innerHTML =
+                "Welcome, " + data.logged_in_as;
+            })
+            .catch((error) => {
+              document.getElementById("content").innerHTML = "Access Denied";
+              console.error("Error:", error);
+            });
+        } else {
+          document.getElementById("content").innerHTML =
+            "No token found, please login.";
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <h1>This is a Protected Page</h1>
+    <div id="content">
+      <p>Loading...</p>
+    </div>
+    <button onclick="logout()">Logout</button>
+  </body>
+  <script>
+    // 로그아웃 함수
+    function logout() {
+      // 로컬 스토리지에서 JWT 토큰 제거
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+
+      // 로그인 페이지 또는 홈페이지로 리다이렉트
+      window.location.href = "/";
+    }
+  </script>
+</html>
+```
+
+# Flask MiniProject
+
+- User Management Web
+- Instargram RESTAPI
+- TodoList
+
+## User-ManagementWeb
+
+- Flask N Jinja
+
+Goals
+
+- 사용자 목록 표시, 추가, 삭제 기능
+- Flask 라우트 및 Jinja 템플릿 상ㅇ
+- 사용자 입력 처리 및 데이터를 서버에서 관리
+
+Request
+
+- 라우트 설정
+  - 사용자 목록을 표시하는 라우트를 포함하여, 사용자 추가(`/add`), 수정(`/edit/<username>`), 삭제(`/delete/<username>` )기능을 수행하는 라우트 설정
+- 템플릿 설정
+  - 사용자 목록, 추가, 삭제, 수정 기능 HTML 작성
+  - 사용자 추가 및 수정을 위한 폼 기능
+  - 각 사용자에 대한 수정 및 삭제 옵션 제공
+- 폼 데이터 처리 및 서버 로직 구현
+  - 사용자 추가 및 수정에 대한 폼 데이터를 처리하는 백엔드 로직 구현
+  - 유효성 검증 및 피드백 제공
+- 애플리케이션 실행 및 테스트
+
+### 파일 구조
+
+```
+├─app.py
+└─templates
+    ├─index.html
+    ├─add_user.html
+    └─edit_user.html
+```
+
+app.py
+
+```
+from flask import Flask, render_template, request, redirect, url_for
+
+app = Flask(__name__)
+
+# 임시 사용자 데이터
+users = [
+    {"username": "traveler", "name": "Alex"},
+    {"username": "photographer", "name": "Sam"},
+    {"username": "gourmet", "name": "Chris"}
+]
+
+@app.route('/')
+def index():
+    return render_template('index.html', users=users)
+
+# 사용자 추가, 수정, 삭제 라우트 및 함수 작성...
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+templates/index.html
+
+```
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Management</title>
+</head>
+<body>
+    <h1>User List</h1>
+    <ul>
+    {% for user in users %}
+        <li>{{ user.name }} ({{ user.username }})
+            <a href="/edit/{{ user.username }}">Edit</a>
+            <a href="/delete/{{ user.username }}">Delete</a>
+        </li>
+    {% endfor %}
+    </ul>
+    <a href="/add">Add User</a>
+</body>
+</html>
+```
+
+templates/add_user.html
+
+```
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add User</title>
+</head>
+<body>
+    <h1>Add User</h1>
+    <form method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name">
+        <input type="submit" value="Add">
+    </form>
+    <a href="{{ url_for('index') }}">Back</a>
+</body>
+</html>
+```
+
+templates/edit_user.html
+
+```
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit User</title>
+</head>
+<body>
+    <h1>Edit User</h1>
+    <form method="post">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ user.name }}">
+        <input type="submit" value="Update">
+    </form>
+    <a href="{{ url_for('index') }}">Back</a>
+</body>
+</html>
+```
 
 # 기타
 
