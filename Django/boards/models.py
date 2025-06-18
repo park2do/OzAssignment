@@ -1,9 +1,17 @@
 from django.db import models
+from common.models import CommonModel
 
 # 게시글
 
-
 # Create your models here.
-class Board(models.Model):
+class Board(CommonModel):
     title = models.CharField(max_length=50)
-    content = models.TextField
+    content = models.TextField()
+    writer = models.CharField(max_length=30)
+    date = models.DateTimeField(auto_now_add=True)
+    likes = models.PositiveIntegerField(default=0)
+    reviews = models.PositiveIntegerField(default=0)
+    details = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.title
