@@ -15,19 +15,25 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
-# Application definition
-
-INSTALLED_APPS = [
+#D
+DJANGO_SYSTEM_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+]
+
+# Application definition
+CUSTOMED_APPS = [
     "boards.apps.BoardsConfig", # Board Model 추가할 때 추가해야함.
     "users.apps.UsersConfig",
+    "feeds.apps.FeedsConfig",
+    "rest_framework",
 ]
+
+INSTALLED_APPS = DJANGO_SYSTEM_APPS + CUSTOMED_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

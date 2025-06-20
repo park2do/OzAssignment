@@ -1,5 +1,0 @@
-Django REST Framwork
-
-특징:
-    MTV Model
-    Represent

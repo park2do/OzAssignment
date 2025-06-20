@@ -13,5 +13,7 @@ class Board(CommonModel):
     reviews = models.PositiveIntegerField(default=0)
     details = models.CharField(max_length=30)
 
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
+
     def __str__(self):
         return self.title

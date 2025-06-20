@@ -5,3 +5,15 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
 	is_business = models.BooleanField(default=False)
 	pass
+
+
+
+###
+{
+    "detail": "Method \"GET\" not allowed.",
+    "email": "alse@alsd.com",
+    "password": "alse@alsdom"
+}
+
+
+###
