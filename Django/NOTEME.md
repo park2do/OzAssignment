@@ -404,8 +404,10 @@ user.review_set
 REST API (Respresentational State API)
 - 자원을 이름으로 표현하여 자원의 상태를 주고 받는 것. (표현 방식: URI)
 
-1. Django REST FRAME 설치
+1. Django REST FRAMEWORK 설치
 2. SEIRIALIZING
+3. Serializing WorkFlow
+4. Feeds/Users/Reviews 작성
 
 ### URI or URL?
 URI > URL (Link)
@@ -671,3 +673,112 @@ urlpatterns = [
     path("<int:review_id>/", views.ReviewDetail.as_view())
 ]
 ```
+
+### 9. 유저 상세 데이터 받기 (ex, Feed 내에서 User_id를 통해 유저 데이터를 받았으면, id 값을 통해서 유저 닉네임 가져오는 것.)
+
+1. User 정보를 담은 데이터 가져오기
+
+- Serializer를 이용하여 user 데이터 가져오기
+- (read_only로 보여주고 싶은 것 컨트롤 가능)
+
+# Django Token AUTH
+
+- Django에서 제공하는 TokenAUTH
+1. Token AUTH 설정
+2. 사용자 및 토큰 생성
+3. API 뷰 생성
+
+## AUTH TOKEN 설정
+```
+INSTALLED_APPS = [
+	"rest_framework.authtoken" # 추가
+]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication', # 추가
+    ],
+}
+```
+zsh, cmd
+```
+python manage.py migrate 
+```
+
+## 사용자 및 토큰 생성 
+> A. Django Sheell에서 토큰 활성화
+> B. 토큰 적용
+> C. 토큰 부여
+    > 1. url 설정
+    > 2. POSTMAN으로 확인
+    > 3. /admin에서 토큰 확인
+
+- Django Shell 활용
+```
+from django.contrib.auth import get_user_model
+from rest_framework.authtoken.models import Token
+
+# settings.AUTH_USER_MODEL에 설정된 커스텀 유저 모델을 가져올 수 있습니다.
+User = get_user_model()
+user = User.objects.create_user('username', 'email@example.com', 'password') # 새로운 user 생성
+token = Token.objects.create(user=user)
+token.key
+```
+
+- 토큰 적용
+
+```
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated 
+
+...중략...
+authentication_classes = [TokenAuthentication] # 토큰 적용
+permissions_classes = [IsAuthenticated] # 권한 확인
+```
+
+- 토큰 부여 방법 
+    - 1. url 설정
+    - 2. POSTMAN으로 확인
+
+1. url 설정
+```
+from rest_framework.authtoken.views import obtain_auth_token
+
+urlpatterns = [
+    path("getToken", obtain_auth_token)
+]
+```
+2. POSTMAN으로  확인
+- 2.1 POSTMAN에서 아이디, 비밀번호를 통한 POST요청으로 TOKEN값 가져오기
+```
+{"username": "iwbb2020", "password":"plesasefuckingohome"}
+```
+- 2.2 HEADER에 GET요청에 TOKEN 값 담아서 보내기
+<strong>HEADER</strong>
+|Key|Value|
+|---|---|
+|Autrhorization|Authorization asd123dafg™¢adf|
+
+3. /admin에서 토큰 확인
+
+## 토큰 보안 관련 설정
+1. HTTPS 사용
+2. HTTP ONLY COOKIE
+3. 토큰 만료 시간
+4. 로컬 스토리지/ 세션 스토리지 사용
+5. 토큰 분할
+6. 보안환경에서 저장
+7. 사용자 인터페이스 보호
+8. 정기적인 토큰 갱신
+
+# Django REST framework Overview
+
+- DRF   
+- 준비사항
+- 프로젝트 및 앱 설정
+- Serialization 모델 및 직렬화
+- 뷰 및 URL 설정
+- TokenAuthentication, IsAuthenticated  
+- 주의사항 및 팁
+
+

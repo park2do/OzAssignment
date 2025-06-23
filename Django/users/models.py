@@ -3,15 +3,7 @@ from django.contrib.auth.models import AbstractUser
 # Create your models here.
 
 class User(AbstractUser):
-	is_business = models.BooleanField(default=False)
-	pass
+    
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(unique=True)
 
-
-
-###
-{
-    "detail": "Method \"GET\" not allowed.",
-    "email": "alse@alsd.com",
-    "password": "alse@alsdom"
-}
-###

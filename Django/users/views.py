@@ -1,11 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ParseError  
-from .serializers import MyInfoSerializer
+from .serializers import MyInfoSerializer, FeedUserSerializer
 from django.contrib.auth.password_validation import validate_password
 
+from rest_framework.authentication import TokenAuthentication # 사용자 인증
+from rest_framework.permissions import IsAuthenticated # 권한 부여
 # Create your views here.
 class Users(APIView):
+    def get(self, request):
+        user  = request.data
+        serializer = MyInfoSerializer(user, many=True)
+        return Response(serializer.data)
+    
     def post(self, request):
         password = request.data.get('password')
         serializer = MyInfoSerializer(data=request.data)
@@ -29,9 +36,13 @@ class Users(APIView):
 
 # Get, Put를 이용하여 업데이트 할 수 있게 만드는 Class
 class MyInfo(APIView):
+    authentication_classes = [TokenAuthentication] 
+    permission_classes = [IsAuthenticated]
+
+
     def get(self, request): 
         user = request.user 
-        serializer = MyInfoSerializer(user)
+        serializer = FeedUserSerializer(user)
         return Response(serializer.data)
     
     def put(self, request):
