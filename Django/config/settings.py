@@ -30,6 +30,7 @@ CUSTOMED_APPS = [
     "boards.apps.BoardsConfig", # Board Model 추가할 때 추가해야함.
     "users.apps.UsersConfig",
     "feeds.apps.FeedsConfig",
+    "reviews.apps.ReviewsConfig",
     "rest_framework",
 ]
 

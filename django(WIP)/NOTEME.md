@@ -38,11 +38,24 @@ python manage.py createsuperuser # 2. 어드민 계정 생성
 
 # Model View Template
 
-### 1. model 작성 및 migration
+- 0. model
+- 1. adminPage
+- 2. temaplates
+- 3. View
+- 4. URL  
+
+### 0. model 작성 및 migration
 ```
 # model 작성 완료
 python manage.py makemigrations
 python maange.py migrate
+```
+
+### 1. adminPage 적용 
+```
+from .models import Photo
+
+admin.site.register(Photo)
 ```
 
 ### 2. Templates 생성
@@ -50,3 +63,11 @@ python maange.py migrate
 /photo/templates/photo.html  # 1. Templates 생성 및 html 코드 작성
 # 2. HTML 코드 작성
 ```
+
+### 3. View 작성
+```
+
+```
+
+
+### 4. URL 작성

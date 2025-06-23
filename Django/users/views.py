@@ -27,3 +27,20 @@ class Users(APIView):
         else:
             raise ParseError(serializer.errors)
 
+# Get, Put를 이용하여 업데이트 할 수 있게 만드는 Class
+class MyInfo(APIView):
+    def get(self, request): 
+        user = request.user 
+        serializer = MyInfoSerializer(user)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        user = request.user
+        serializer = MyInfoSerializer(user, data=request.data, partail=True)
+        
+        if serializer.is_valid():
+            user = serializer.save()  
+            serializer = MyInfoSerializer(user)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)

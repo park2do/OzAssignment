@@ -14,6 +14,4 @@ class User(AbstractUser):
     "email": "alse@alsd.com",
     "password": "alse@alsdom"
 }
-
-
 ###

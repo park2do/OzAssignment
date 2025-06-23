@@ -500,10 +500,13 @@ urlpatterns = [
 ]
 ```
 
-## 3. GET/Feeds API (1/2)
+## Serializing WorkFlow
+<strong> Model -> Serialzer -> View -> URL </strong>
 
-### WorkFlow
-<strong>Model -> Serialzer -> View -> URL</strong>
+
+## Feeds
+
+### 3. GET/Feeds API (1/2)
 
 ---
 ### WorkProcess
@@ -544,7 +547,7 @@ class Feeds(APIView):
         path("", views.Feeds.as_view()),
     ]
 
-## 4. GET/Feeds API (2/2) 
+### 4. GET/Feeds API (2/2) 
 
 1. 피드에서 유저 데이터도 불러옴
     - depth : 1
@@ -553,7 +556,7 @@ class Feeds(APIView):
     - users/serializer.py
     - user = FeedUserrSerializer()
 
-## 5. POST/Feeds API  
+### 5. POST/Feeds API  
 
 - 1. POST 작성 in views.py
 ```
@@ -567,4 +570,104 @@ def post(self, request):
 ```
 
 - 2. save() 함수 사용 시, is_valid() 함수로 먼저 확인해줘야함. (django가 그렇게 하래)
-    - `serializer.is_valid()`
+    - `serializer.is_valid()`  
+
+## Users
+
+### 6. POST/users API
+
+- 1. password
+
+- 2. other information towards users
+
+### 7. UPDATE/users API
+
+- 1. Get, Put 이용하기
+
+```
+class MyInfo(APIView):
+    def get(self, request): 
+        user = request.user 
+        serializer = MyInfoSerializer(user)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        user = request.user
+        serializer = MyInfoSerializer(user, data=request.data, partail=True)
+        
+        if serializer.is_valid():
+            user = serializer.save()  
+            serializer = MyInfoSerializer(user)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+```
+
+- 2. 클래스 이용. 
+
+- 3. 업데이트 설정 가능한 웹페이지 따로 생성하여 교체. # URL 설정
+
+## Reviews
+
+### 8. GET/ reviews API
+
+models.py
+```
+from django.db import models
+from common.models import CommonModel
+# Create your models here.
+class Review(CommonModel):  
+    content = models.CharField(max_length= 100)
+    likes = models.PositiveBigIntegerField(default=0)
+    
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE) 
+    feed = models.ForeignKey("feeds.Feed", on_delete=models.CASCADE)
+
+```
+serializers.py
+```
+from rest_framework.serializers import ModelSerializer
+from .models import Review
+
+class ReviewsSerializer(ModelSerializer):
+    class Meta:
+        model: Review
+        fileds = "__all__" 
+           
+```
+Views.py
+```
+from rest_framework.views import APIView
+from .models import Review
+from .serializers import ReviewsSerializer
+from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
+
+# Create your views here.
+class Reviews(APIView):
+    def get(self, request):
+        reviews = Review.objects.all()
+        serializer = ReviewsSerializer(reviews, many=True)
+        return Response(serializer.data)
+
+class ReviewDetail(APIView):
+    def get(self, request, review_id):
+        try: 
+            review = Review.objects.get(id=review_id)
+        except:
+            raise NotFound
+        
+        serializer = ReviewsSerializer(review)
+        return Response(serializer.data) 
+```
+urls.py
+```
+from django.urls import path
+from . import views
+
+
+urlpatterns = [
+    path("", views.Reviews.as_view()),
+    path("<int:review_id>/", views.ReviewDetail.as_view())
+]
+```
