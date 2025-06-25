@@ -9,8 +9,11 @@ readme = "README.md"
 python = "^3.11"
 django = "^5.2.3"
 djangorestframework = "^3.16.0"
+djangorestframework-simplejwt = "^5.5.0"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+# 말이 끊겨요 엡 비와서 그런가 어떤거요

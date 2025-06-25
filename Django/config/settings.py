@@ -6,7 +6,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-)t4y)i!^fy0js&@8@ysrue!=08m-4bd6iuf&e7@#1@l0f+k9!c"
 
@@ -33,8 +32,9 @@ CUSTOMED_APPS = [
     "reviews.apps.ReviewsConfig",
     "rest_framework",
     "rest_framework.authtoken",
+    'rest_framework_simplejwt',
 ]
-
+# 지금 안괜찮아요.
 INSTALLED_APPS = DJANGO_SYSTEM_APPS + CUSTOMED_APPS
 
 MIDDLEWARE = [
@@ -123,7 +123,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication', # 추가
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "config.authentication.JWTAuthentication",  # 커스텀 JWT 인증 클래스 사용
     ],
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=14),
+    "SIGNING_KEY": "SECRET",
+    "ALGORITHM": "HS256",
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
