@@ -1196,4 +1196,500 @@ urlpatterns = [
     이 방법으로 **`django-rest-framework-simplejwt`**의 기본 동작에 추가적인 로직을 적용할 수 있습니다.
 
 
-## 4. 
+# TEST
+
+# 59.TestCode(1/3)
+
+## **Django REST Framework에서 API 테스트 작성하기**
+
+1. **테스트 환경 설정**
+2. **테스트 케이스 클래스 작성**
+3. **setUp 메서드로 테스트 데이터 준비**
+4. **API 테스트 메서드 작성**
+5. **`reverse` 함수 사용하기**
+6. **테스트 실행 및 결과 확인**
+
+### 1. 테스트 환경 설정
+
+먼저, Django REST framework 테스트 모듈을 임포트합니다. Django의 테스트 케이스와 **`status`** 모듈도 필요합니다. 이를 위해 다음과 같이 작성합니다:
+
+```python
+from rest_framework.test import APITestCase
+from rest_framework import status
+from django.urls import reverse
+```
+
+- **`APITestCase`:**
+    - **`APITestCase`** 클래스는 Django의 **`TestCase`** 클래스를 확장하여 작성된 REST framework의 클래스입니다.
+    - 이 클래스는 API 테스팅을 위한 추가적인 기능을 제공합니다. 예를 들어, 클라이언트 인스턴스를 포함하여 API 요청을 쉽게 보낼 수 있게 해주며, JSON과 같은 특정 콘텐츠 타입에 대한 지원을 추가합니다.
+    - **`APITestCase`**를 사용하면 DRF(Django REST Framework) 기반의 API 엔드포인트를 테스트하는 데 필요한 환경을 쉽게 구성할 수 있습니다.
+- **`status`:**
+    - **`status`** 모듈은 HTTP 상태 코드를 나타내는 상수들을 포함하고 있습니다.
+    - 예를 들어, **`status.HTTP_200_OK`**, **`status.HTTP_404_NOT_FOUND`**와 같이 의미 있는 이름으로 HTTP 상태 코드를 사용할 수 있게 해 줍니다.
+    - 이러한 상수를 사용하면 코드의 가독성을 향상시키고, 직접 숫자를 입력하는 것보다 오류를 줄일 수 있습니다.
+- **`reverse`:**
+    - **`reverse`** 함수는 Django의 URL 관리 시스템의 일부입니다.
+    - URL 패턴의 이름을 기반으로 해당 URL을 동적으로 생성해 줍니다.
+    - 이 함수는 URL을 하드코딩하지 않고 URL 패턴의 이름을 사용하여 URL을 찾아내므로 URL 구조가 변경되어도 코드를 수정할 필요가 없게 해줍니다.
+    - 예를 들어, **`reverse('predict_diabetes')`**는 'predict_diabetes'라는 이름의 URL 패턴에 매핑된 실제 URL 경로를 반환합니다.
+
+### 2. 테스트 케이스 클래스 작성
+
+테스트를 위한 클래스를 **`APITestCase`**로부터 상속받아 생성합니다. 이 클래스는 REST framework의 기능을 확장하여 API 테스트에 필요한 추가적인 기능을 제공합니다.
+
+```python
+class MyAPITestCase(APITestCase):
+    pass  # 이곳에 테스트 메서드들을 작성
+```
+
+### 3. setUp 메서드로 테스트 데이터 준비
+
+**`setUp`** 메서드는 각 테스트 메서드가 실행되기 전에 호출됩니다. 이곳에서 테스트에 필요한 사용자나 객체를 생성할 수 있습니다.
+
+```python
+def setUp(self):
+    # 예시: 테스트용 사용자 생성
+    self.user = User.objects.create_user(username='testuser', password='password')
+```
+
+### 4. API 테스트 메서드 작성
+
+각 API 엔드포인트에 대해 하나씩 테스트 메서드를 작성합니다. 메서드 이름은 **`test_`**로 시작해야 합니다.
+
+```python
+def test_my_api_endpoint(self):
+    # API 엔드포인트에 대한 테스트 코드 작성
+    pass
+```
+
+### 5. **`reverse`** 함수 사용하기
+
+URL을 하드코딩하는 대신, **`reverse`** 함수를 사용하여 URL을 동적으로 생성합니다. 이렇게 하면 URL 패턴이 변경되어도 테스트 코드를 수정할 필요가 없습니다.
+
+```python
+def test_my_api_endpoint(self):
+    url = reverse('my_api_endpoint_name')
+    response = self.client.get(url)
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+```
+
+- path('api/', views.ViewName.as_view(), name='my_api_endpoint_name')
+
+### 6. 테스트 실행 및 결과 확인
+
+테스트를 실행하려면 Django의 **`python manage.py test`** 명령을 사용합니다. 각 테스트 메서드가 실행되고 결과가 콘솔에 출력됩니다.
+
+```bash
+python manage.py test
+```
+
+## Assert Function
+
+Python의 **`unittest`** 프레임워크에는 다양한 **`assert`** 메서드들이 있으며, 각 메서드는 테스트 케이스에서 특정 조건을 검증하는 데 사용됩니다.
+
+**1. `assertEqual` / `assertNotEqual`**
+
+두 값이 같은지 또는 다른지 확인합니다.
+
+```python
+self.assertEqual(1 + 1, 2)  # 성공
+self.assertNotEqual(1 + 1, 3)  # 성공
+```
+
+**2. `assertTrue` / `assertFalse`**
+
+조건이 참(True)이거나 거짓(False)인지 확인합니다.
+
+```python
+self.assertTrue(1 + 1 == 2)  # 성공
+self.assertFalse(1 + 1 == 3)  # 성공
+```
+
+**3. `assertRaises`**
+
+특정 예외가 발생하는지 확인합니다.
+
+```python
+with self.assertRaises(ValueError):
+    int("abc")  # ValueError 발생
+
+# 범위를 벗어난 인덱스 접근 시 예외 발생
+with self.assertRaises(IndexError):
+    my_list = [1, 2, 3]
+    print(my_list[3])  # 범위를 벗어난 인덱스
+
+# 파일을 찾을 수 없을 때 예외 발생
+with self.assertRaises(FileNotFoundError):
+    open('nonexistentfile.txt')
+
+# 잘못된 키 값 접근 시 예외 발생
+with self.assertRaises(KeyError):
+    my_dict = {'a': 1, 'b': 2}
+    print(my_dict['c'])
+```
+
+**4. `assertIn` / `assertNotIn`**
+
+항목이 주어진 시퀀스에 포함되어 있는지 확인합니다.
+
+```python
+self.assertIn(3, [1, 2, 3])  # 성공
+self.assertNotIn(4, [1, 2, 3])  # 성공
+```
+
+**5. `assertIsNone` / `assertIsNotNone`**
+
+값이 **`None`**인지 또는 **`None`**이 아닌지 확인합니다.
+
+```python
+self.assertIsNone(None)  # 성공
+self.assertIsNotNone(1)  # 성공
+```
+
+**6. `assertAlmostEqual` / `assertNotAlmostEqual`**
+
+두 부동 소수점 값이 거의 같은지 확인합니다.
+
+```python
+self.assertAlmostEqual(0.1 + 0.2, 0.3, places=1)  # 성공
+self.assertNotAlmostEqual(0.1 + 0.2, 0.3, places=10)  # 성공
+```
+
+**7. `assertCountEqual`**
+
+두 컨테이너가 동일한 요소를 동일한 개수만큼 포함하고 있는지 확인합니다.
+
+```python
+self.assertCountEqual([1, 2, 3], [3, 2, 1])  # 성공
+```
+
+**8. `assertDictEqual`**
+
+두 딕셔너리가 동일한지 확인합니다.
+
+```python
+self.assertDictEqual({'a': 1, 'b': 2}, {'b': 2, 'a': 1})  # 성공
+```
+
+**9. `assertListEqual`**
+
+두 리스트가 동일한지 확인합니다.
+
+```python
+self.assertListEqual([1, 2, 3], [1, 2, 3])  # 성공
+```
+
+**10. `assertSetEqual`**
+
+두 세트가 동일한지 확인합니다.
+
+```python
+self.assertSetEqual({1, 2, 3}, {3, 2, 1})  # 성공
+```
+
+## 영상 실습 TestCode
+
+feeds/urls.py
+
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.Feeds.as_view(), name="all_feeds"),
+    path("<int:feed_id>", views.FeedDetail.as_view(), name="feed_detail"),
+]
+```
+
+feeds/tests.py
+
+```python
+from rest_framework.test import APITestCase
+from rest_framework import status
+from django.urls import reverse
+from .models import Feed
+from users.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
+
+class FeedAPITestCase(APITestCase):
+    # 각 테스트 메서드가 실행되기 전에 호출
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+        refresh = RefreshToken.for_user(self.user)
+        self.token = str(refresh.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+        self.feed1 = Feed.objects.create(user=self.user, title="Title 1")
+        self.feed1 = Feed.objects.create(user=self.user, title="Title 2")
+
+    def test_get_all_feeds(self):
+        url = reverse("all_feeds")
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 2)
+
+    def test_get_feed_detail(self):
+        url = reverse("feed_detail", kwargs={"feed_id": 1})
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["content"], self.feed1.content)
+
+    def test_create_feed(self):
+        self.client.login(username="testuser", password="password")
+
+        url = reverse("all_feeds")
+        data = {"title": "New Title", "content": "New Feed"}
+        res = self.client.post(url, data)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            Feed.objects.count(), 3
+        )  # 전체 게시글의 갯수는 3개여야 합니다.
+        self.assertEqual(Feed.objects.latest("id").content, "New Feed")
+```
+
+reviews/urls.py
+
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.Reviews.as_view(), name="reviews"),
+    path("<int:review_id>", views.ReviewDetail.as_view(), name="review_detail"),
+]
+```
+
+reviews/tests.py
+
+```python
+from rest_framework.test import APITestCase
+from rest_framework import status
+from django.urls import reverse
+from .models import Review
+from users.models import User
+from feeds.models import Feed
+from rest_framework_simplejwt.tokens import RefreshToken
+
+class ReviewAPITestCase(APITestCase):
+    def setUp(self):
+        # User Model
+        self.user = User.objects.create_user(username="testuser", password="password")
+        refresh = RefreshToken.for_user(self.user)
+
+        self.token = str(refresh.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+        # Feed Model
+        self.feed = Feed.objects.create(user=self.user, title="New Title")
+
+        # Review Model
+        self.review1 = Review.objects.create(
+            content="Content 1", likes_num=0, user=self.user, feed=self.feed
+        )
+        self.review2 = Review.objects.create(
+            content="Content 2", likes_num=0, user=self.user, feed=self.feed
+        )
+
+    def test_get_all_reviews(self):
+        url = reverse("reviews")
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(Review.objects.count(), 2)
+
+    def test_get_review_detail(self):
+        url = reverse("review_detail", kwargs={"review_id": self.review1.id})
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["content"], self.review1.content)
+```
+
+실행 시 `python manage.py test`
+
+## Feed 모델의 test case
+
+**`feeds/urls.py`**
+
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.Feeds.as_view(), name='all_feeds'),
+    path("<int:feed_id>", views.FeedDetail.as_view(), name='feed_detail')
+]
+```
+
+**`feeds/tests.py`**
+
+```python
+from rest_framework.test import APITestCase # DRF
+from rest_framework import status
+from django.urls import reverse
+from .models import Feed 
+from users.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
+
+class FeedAPITestCase(APITestCase):
+		# setUp 메서드는 각 테스트 메서드가 실행되기 전에 호출
+    def setUp(self):
+				# 테스트용 사용자에 대한 JWT 토큰 생성
+        self.user = User.objects.create_user(username='testuser', password='password')
+        refresh = RefreshToken.for_user(self.user)
+        self.token = str(refresh.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+
+        self.feed1 = Feed.objects.create(user=self.user, content='Test Feed 1')
+        self.feed2 = Feed.objects.create(user=self.user, content='Test Feed 2')
+
+    def test_get_all_feeds(self):
+        url = reverse('all_feeds')  # 'all_feeds'는 url 패턴 이름입니다.
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)  # 2개의 피드가 반환되어야 합니다.
+
+    def test_get_feed_detail(self):
+        url = reverse('feed_detail', kwargs={'feed_id': 1})  # 'user_feeds'는 url 패턴 이름입니다.
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+				self.assertEqual(res.data['content'], self.feed1.content)
+        # self.assertEqual(len(response.data), 2)  # 해당 유저의 2개 피드가 반환되어야 합니다.
+    
+    def test_create_feed(self):
+        self.client.login(username='testuser', password='password')
+        url = reverse('all_feeds')  # 'feeds'는 URL 패턴 이름입니다.
+        data = {'content': 'New Feed Content'}
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Feed.objects.count(), 3)  # 게시글 수가 3개여야 합니다.
+        self.assertEqual(Feed.objects.latest('id').content, 'New Feed Content')
+		
+		# 예시) view 생성 필요
+    def test_delete_feed(self):
+        self.client.login(username='testuser', password='password')
+        url = reverse('feed_detail', kwargs={'feed_id': self.feed1.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Feed.objects.count(), 1)
+
+    def test_update_feed(self):
+        self.client.login(username='testuser', password='password')
+        url = reverse('feed_detail', kwargs={'feed_id': self.feed1.id})
+        data = {'content': 'Updated Content'}
+        response = self.client.put(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.feed1.refresh_from_db()
+        self.assertEqual(self.feed1.content, 'Updated Content')
+
+    def test_unauthorized_access(self):
+        url = reverse('all_feeds')
+        data = {'content': 'Should Not Create'}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_feed_detail(self):
+        url = reverse('feed_detail', kwargs={'feed_id': self.feed1.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['content'], self.feed1.content)
+
+    def test_invalid_input(self):
+        self.client.login(username='testuser', password='password')
+        url = reverse('all_feeds')
+        data = {'wrong_field': 'Invalid Data'}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+```
+
+- **`reverse`를 테스트에서 사용하는 예시**
+    
+    Django REST framework에서 API 테스트를 작성할 때 **`reverse`** 함수는 API 엔드포인트의 URL을 생성하는 데 유용합니다.
+    
+    **urls.py**
+    
+    ```python
+    from django.urls import path
+    from . import views
+    
+    urlpatterns = [
+        path("", views.Feeds.as_view(), name='all_feeds'),
+        path("<int:feed_id>", views.FeedDetail.as_view(), name='user_feeds')
+    ]
+    ```
+    
+    **tests.py**
+    
+    ```python
+    from django.urls import reverse
+    
+    # 전체 피드를 가져오는 URL
+    url_all_feeds = reverse('all_feeds')
+    
+    # 특정 사용자의 피드를 가져오는 URL
+    url_user_feeds = reverse('user_feeds', kwargs={'username': 'testuser'})
+    ```
+    
+    이렇게 하면, 실제 URL 경로를 직접 코딩할 필요 없이 URL을 동적으로 생성할 수 있으며, URL 패턴이 변경되어도 테스트 코드를 수정할 필요가 없습니다.
+    
+
+## Review 모델의  test case
+
+**urls.py**
+
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("/", views.Reviews.as_view(), name='reviews'),
+    path("/<int:review_id>/", views.ReivewDetail.as_view(), name='review_detail')
+]
+```
+
+**tests.py**
+
+```python
+from rest_framework.test import APITestCase
+from django.urls import reverse
+from rest_framework import status
+from .models import Review 
+from users.models import User
+from feeds.models import Feed
+from rest_framework_simplejwt.tokens import RefreshToken
+
+class ReviewAPITestCase(APITestCase):
+    def setUp(self):
+        # 테스트용 유저와 피드 생성        
+				self.user = User.objects.create_user(username='testuser', password='password')
+        refresh = RefreshToken.for_user(self.user)
+        self.token = str(refresh.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')       
+				self.feed = Feed.objects.create(user=self.user, content='Test Feed')
+
+        # 테스트용 리뷰 생성
+        self.review1 = Review.objects.create(content='Content 1', likes_num=0, user=self.user, feed=self.feed)
+        self.review2 = Review.objects.create(content='Content 2', likes_num=0, user=self.user, feed=self.feed)
+
+    def test_get_all_reviews(self):
+        url = reverse('reviews')
+        res = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Review.objects.count(), 2)
+
+    def test_get_review_detail(self):
+        url = reverse('review_detail', kwargs={'review_id': self.review1.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['content'], self.review1.content)  # 리뷰 내용 확인
+```
+
+### **테스트 메서드 설명:**
+
+- **`test_get_all_reviews`**: 모든 리뷰를 가져오는 API를 테스트합니다. **`reviews`** URL을 사용하여 GET 요청을 보내고, 응답 코드와 반환된 데이터의 길이를 확인합니다.
+- **`test_get_review_detail`**: 단일 리뷰 상세 정보를 가져오는 API를 테스트합니다. **`review_detail`** URL에 리뷰 ID를 전달하여 GET 요청을 보내고, 응답 코드와 반환된 리뷰 데이터의 제목을 확인합니다.
+
